@@ -1,0 +1,43 @@
+{
+  "name": "vaotran-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VàoTrận M0 + M1 modular monolith backend",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "test": "vitest run --no-file-parallelism",
+    "test:watch": "vitest",
+    "migrate:up": "tsx src/platform/database/migrate.ts up",
+    "migrate:down": "tsx src/platform/database/migrate.ts down",
+    "migrate:status": "tsx src/platform/database/migrate.ts status",
+    "seed": "tsx src/platform/database/seed.ts",
+    "test:m14:operational": "vitest run src/tests/m14-operational.integration.test.ts --no-file-parallelism",
+    "test:m14:ci": "bash scripts/ci/ci-m14-operational-gate.sh",
+    "ops:replay-event": "tsx scripts/m14-outbox-replay.ts",
+    "ops:validate-production-config": "tsx scripts/validate-production-config.ts"
+  },
+  "dependencies": {
+    "argon2": "^0.45.1",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "pg": "^8.16.3",
+    "pino": "^9.7.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.0",
+    "@types/pg": "^8.15.5",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

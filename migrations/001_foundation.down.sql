@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS idempotency_keys;
+DROP TABLE IF EXISTS event_consumptions;
+DROP TABLE IF EXISTS event_outbox;
+DROP TABLE IF EXISTS user_sport_profiles;
+DROP TABLE IF EXISTS sports;
+DROP TABLE IF EXISTS users;
+DROP TYPE IF EXISTS outbox_publish_status;
+DROP TYPE IF EXISTS confidence_level;
+DROP TYPE IF EXISTS skill_state;
+DROP TYPE IF EXISTS sport_status;
+DROP TYPE IF EXISTS gender;
+DROP TYPE IF EXISTS user_status;

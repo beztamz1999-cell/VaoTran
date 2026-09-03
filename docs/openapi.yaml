@@ -1,0 +1,131 @@
+openapi: 3.1.0
+info:
+  title: VàoTrận API
+  version: 1.0.0-private-alpha
+  description: Canonical private-alpha HTTP contract. Successful endpoints return a top-level data object.
+servers:
+  - url: /
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: opaque-session-token }
+  responses:
+    Ok: { description: Successful response }
+    Created: { description: Resource created }
+    NoContent: { description: Successful response with no body }
+    Error: { description: Domain or validation error }
+paths:
+  /health:
+    get: { operationId: getHealth, security: [], responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /health/live:
+    get: { operationId: getLiveness, security: [], responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /health/ready:
+    get: { operationId: getReadiness, security: [], responses: { '200': { $ref: '#/components/responses/Ok' }, '503': { $ref: '#/components/responses/Error' } } }
+  /api/v1/auth/register:
+    post: { operationId: register, security: [], responses: { '201': { $ref: '#/components/responses/Created' }, '409': { $ref: '#/components/responses/Error' } } }
+  /api/v1/auth/login:
+    post: { operationId: login, security: [], responses: { '200': { $ref: '#/components/responses/Ok' }, '401': { $ref: '#/components/responses/Error' } } }
+  /api/v1/auth/logout:
+    post: { operationId: logout, responses: { '204': { $ref: '#/components/responses/NoContent' } } }
+  /api/v1/me:
+    get: { operationId: getMe, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+    patch: { operationId: updateMe, responses: { '200': { $ref: '#/components/responses/Ok' }, '422': { $ref: '#/components/responses/Error' } } }
+  /api/v1/me/rooms:
+    get: { operationId: listMyRooms, description: Includes pending, upcoming, in_progress, completed, and hosting buckets., responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/me/reliability:
+    get: { operationId: getMyReliability, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/me/notification-preferences:
+    get: { operationId: getNotificationPreferences, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+    patch: { operationId: updateNotificationPreferences, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/me/push-devices:
+    post: { operationId: registerPushDevice, responses: { '201': { $ref: '#/components/responses/Created' } } }
+  /api/v1/notifications:
+    get: { operationId: listNotifications, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/notifications/{notificationId}/read:
+    post: { operationId: markNotificationRead, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/search/rooms:
+    get: { operationId: searchRooms, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/search/telemetry:
+    post: { operationId: recordSearchTelemetry, responses: { '204': { $ref: '#/components/responses/NoContent' } } }
+  /api/v1/rooms:
+    post: { operationId: createRoom, responses: { '201': { $ref: '#/components/responses/Created' } } }
+  /api/v1/rooms/{roomId}:
+    get: { operationId: getRoomDetail, description: Room data, public host presentation, and viewer context when authenticated., security: [ {}, { bearerAuth: [] } ], responses: { '200': { $ref: '#/components/responses/Ok' } } }
+    patch: { operationId: updateRoom, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/rooms/{roomId}/publish:
+    post: { operationId: publishRoom, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/rooms/{roomId}/repeat:
+    post: { operationId: repeatRoom, responses: { '201': { $ref: '#/components/responses/Created' } } }
+  /r/{shareToken}:
+    get: { operationId: resolveRoomShareLink, security: [], responses: { '302': { description: Redirect to the Room client view }, '404': { $ref: '#/components/responses/Error' } } }
+  /api/v1/rooms/{roomId}/reserved-external-count:
+    post: { operationId: updateReservedExternalCount, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/rooms/{roomId}/cancel:
+    post: { operationId: cancelRoom, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/rooms/{roomId}/start:
+    post: { operationId: startRoom, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/rooms/{roomId}/complete:
+    post: { operationId: completeRoom, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/rooms/{roomId}/applications:
+    post: { operationId: createApplication, responses: { '201': { $ref: '#/components/responses/Created' } } }
+  /api/v1/applications/{applicationId}/withdraw:
+    post: { operationId: withdrawApplication, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/applications/{applicationId}/accept:
+    post: { operationId: acceptApplication, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/applications/{applicationId}/reject:
+    post: { operationId: rejectApplication, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/host/rooms/{roomId}:
+    get: { operationId: getHostRoomManager, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/host/rooms/{roomId}/applications:
+    get: { operationId: listHostApplications, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/host/rooms/{roomId}/waitlist:
+    get: { operationId: listHostWaitlist, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/host/rooms/{roomId}/refill:
+    get: { operationId: getHostRefill, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/host/rooms/{roomId}/refill/activate:
+    post: { operationId: activateRefill, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/host/rooms/{roomId}/refill/disable:
+    post: { operationId: disableRefill, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/host/rooms/{roomId}/attendance:
+    get: { operationId: listHostAttendance, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/participants/{participantId}/remove-by-host:
+    post: { operationId: removeParticipantByHost, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/participants/{participantId}/cancel:
+    post: { operationId: cancelParticipation, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/participants/{participantId}/attendance/present:
+    post: { operationId: markPresent, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/participants/{participantId}/attendance/no-show:
+    post: { operationId: markNoShow, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/participants/{participantId}/rating-eligibility:
+    get: { operationId: getRatingEligibility, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/participants/{participantId}/skill-rating:
+    post: { operationId: submitSkillRating, responses: { '201': { $ref: '#/components/responses/Created' } } }
+  /api/v1/rooms/{roomId}/skill-ratings/batch:
+    post: { operationId: submitSkillRatingsBatch, responses: { '201': { $ref: '#/components/responses/Created' } } }
+  /api/v1/friends:
+    get: { operationId: listFriends, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/friends/requests:
+    post: { operationId: requestFriendship, responses: { '201': { $ref: '#/components/responses/Created' } } }
+  /api/v1/friends/requests/{friendshipId}/accept:
+    post: { operationId: acceptFriendship, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/friends/requests/{friendshipId}/decline:
+    post: { operationId: declineFriendship, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/parties:
+    post: { operationId: createParty, responses: { '201': { $ref: '#/components/responses/Created' } } }
+  /api/v1/parties/{partyId}:
+    get: { operationId: getParty, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/parties/{partyId}/members:
+    post: { operationId: addPartyMember, responses: { '201': { $ref: '#/components/responses/Created' } } }
+  /api/v1/parties/{partyId}/members/{partyMemberId}:
+    delete: { operationId: removePartyMember, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/parties/{partyId}/members/{partyMemberId}/confirm:
+    post: { operationId: confirmPartyMember, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/parties/{partyId}/members/{partyMemberId}/decline:
+    post: { operationId: declinePartyMember, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/party-guest-claims/{claimToken}:
+    post: { operationId: claimPartyGuest, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/users/{userId}/host-profile:
+    get: { operationId: getHostProfile, security: [], responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/users/{userId}/sports/{sportCode}/profile:
+    get: { operationId: getSportProfile, security: [], responses: { '200': { $ref: '#/components/responses/Ok' } } }

@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-08-20T11:05:12.219Z",
+  "scope": "Controlled PostgreSQL baseline; not a production capacity commitment.",
+  "dataset": {
+    "searchableRooms": 12,
+    "concurrentApplicants": 20
+  },
+  "searchMs": {
+    "samples": 30,
+    "p50": 6.61,
+    "p95": 8.2,
+    "max": 11.21
+  },
+  "concurrentAccept": {
+    "attempted": 20,
+    "accepted": 20,
+    "durationMs": 139.22,
+    "activeParticipants": 20
+  }
+}

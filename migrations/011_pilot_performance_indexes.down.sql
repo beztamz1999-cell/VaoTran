@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS room_application_members_user_application_idx;
+DROP INDEX IF EXISTS room_participants_active_user_room_idx;

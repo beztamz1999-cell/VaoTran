@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS room_refill_states;
+DROP TABLE IF EXISTS slot_recovery_records;
+DROP TABLE IF EXISTS reliability_adjustments;
+DROP TABLE IF EXISTS host_stats;
+DROP TABLE IF EXISTS player_reliability_stats;
+DROP TABLE IF EXISTS participation_cancellations;
+DROP TYPE IF EXISTS slot_loss_type;
+DROP TYPE IF EXISTS reliability_subject_type;
+DROP TYPE IF EXISTS participation_cancellation_classification;
+DROP TYPE IF EXISTS cancellation_source_type;

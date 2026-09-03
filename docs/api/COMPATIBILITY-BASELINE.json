@@ -1,0 +1,22 @@
+{
+  "contract_version": 1,
+  "openapi_paths": [
+    "/health",
+    "/api/v1/search/rooms",
+    "/api/v1/rooms/{roomId}",
+    "/api/v1/rooms/{roomId}/applications",
+    "/api/v1/me/rooms",
+    "/api/v1/host/rooms/{roomId}/applications",
+    "/api/v1/participants/{participantId}/attendance/present",
+    "/api/v1/rooms/{roomId}/complete"
+  ],
+  "lifecycle_events": [
+    "ROOM_PUBLISHED",
+    "JOIN_REQUEST_CREATED",
+    "JOIN_REQUEST_ACCEPTED",
+    "ROOM_MANUALLY_STARTED",
+    "PLAYER_NO_SHOW",
+    "ROOM_COMPLETED",
+    "RATING_SUBMITTED"
+  ]
+}

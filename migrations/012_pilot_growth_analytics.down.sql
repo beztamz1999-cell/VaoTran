@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS analytics_experiment_exposures;
+DROP TABLE IF EXISTS analytics_experiment_assignments;
+DROP TABLE IF EXISTS analytics_user_profiles;
+DROP TABLE IF EXISTS analytics_completed_participations;
+DROP TABLE IF EXISTS analytics_participant_facts;
+DROP TABLE IF EXISTS analytics_application_facts;
+DROP TABLE IF EXISTS analytics_room_facts;
+DROP TABLE IF EXISTS analytics_activity_events;
+DROP TABLE IF EXISTS analytics_processed_events;

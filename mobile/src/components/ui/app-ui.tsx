@@ -1,0 +1,36 @@
+import type { ReactNode } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle } from 'react-native';
+import { SymbolView } from 'expo-symbols';
+import { colors, radius, shadow, space } from '@/theme';
+
+export function PrimaryButton({ label, onPress, disabled, style }: { label: string; onPress: () => void; disabled?: boolean; style?: ViewStyle }) {
+  return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.primary, style, (pressed || disabled) && styles.dim]}><Text style={styles.primaryText}>{disabled ? 'Đang xử lý…' : label}</Text></Pressable>;
+}
+export function SecondaryButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
+  return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.secondary, (pressed || disabled) && styles.dim]}><Text style={styles.secondaryText}>{label}</Text></Pressable>;
+}
+export function TextField({ label, hint, placeholder, ...props }: { label: string; hint?: string } & TextInputProps) {
+  return <View style={styles.field}><Text style={styles.label}>{label}</Text><TextInput placeholder={placeholder} placeholderTextColor="#9AA39F" {...props} style={styles.input} autoCapitalize="none" />{hint ? <Text style={styles.hint}>{hint}</Text> : null}</View>;
+}
+export function Chip({ label, active, onPress, disabled }: { label: string; active?: boolean; onPress?: () => void; disabled?: boolean }) {
+  return <Pressable disabled={disabled || !onPress} onPress={onPress} style={({ pressed }) => [styles.chip, active && styles.chipActive, disabled && styles.chipDisabled, pressed && styles.dim]}><Text style={[styles.chipText, active && styles.chipTextActive, disabled && styles.chipTextDisabled]}>{label}</Text></Pressable>;
+}
+export function StatusBadge({ label, tone = 'green' }: { label: string; tone?: 'green' | 'orange' | 'red' | 'gray' }) {
+  return <View style={[styles.badge, tone === 'orange' && styles.orange, tone === 'red' && styles.red, tone === 'gray' && styles.gray]}><Text style={[styles.badgeText, tone === 'orange' && styles.orangeText, tone === 'red' && styles.redText, tone === 'gray' && styles.grayText]}>{label}</Text></View>;
+}
+export function Card({ children, style }: { children: ReactNode; style?: ViewStyle }) { return <View style={[styles.card, style]}>{children}</View>; }
+export function SectionHeader({ title, action }: { title: string; action?: ReactNode }) { return <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>{title}</Text>{action}</View>; }
+export function ErrorBanner({ message }: { message: string }) { return <View style={styles.errorBanner}><Text style={styles.errorTitle}>Có lỗi xảy ra</Text><Text style={styles.errorText}>{message}</Text></View>; }
+export function EmptyState({ title, description }: { title: string; description: string }) { return <View style={styles.empty}><Text style={styles.emptyMark}>○</Text><Text style={styles.emptyTitle}>{title}</Text><Text style={styles.emptyText}>{description}</Text></View>; }
+export function LoadingState({ label = 'Đang tải dữ liệu…' }: { label?: string }) { return <View style={styles.loading}><ActivityIndicator color={colors.brand} /><Text style={styles.emptyText}>{label}</Text></View>; }
+export function Avatar({ name, size = 38 }: { name: string; size?: number }) { return <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}><Text style={[styles.avatarText, { fontSize: Math.max(12, size * .38) }]}>{name.trim().slice(0, 1).toUpperCase() || '?'}</Text></View>; }
+const iconNames = {
+  home: { ios: 'house.fill', android: 'home', web: 'home' }, calendar: { ios: 'calendar', android: 'calendar_month', web: 'calendar_month' },
+  create: { ios: 'plus.circle.fill', android: 'add_circle', web: 'add_circle' }, bell: { ios: 'bell', android: 'notifications', web: 'notifications' },
+  profile: { ios: 'person', android: 'person', web: 'person' }, back: { ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }, location: { ios: 'location', android: 'location_on', web: 'location_on' },
+} as const;
+export function AppIcon({ name, size = 20, color = colors.muted }: { name: keyof typeof iconNames; size?: number; color?: string }) { return <SymbolView name={iconNames[name]} size={size} tintColor={color} />; }
+
+const styles = StyleSheet.create({
+  primary: { minHeight: 50, borderRadius: radius.button, backgroundColor: colors.brand, justifyContent: 'center', alignItems: 'center', paddingHorizontal: space.md, ...shadow }, primaryText: { color: '#fff', fontWeight: '800', fontSize: 14 }, secondary: { minHeight: 46, borderRadius: radius.button, borderWidth: 1, borderColor: colors.border, justifyContent: 'center', alignItems: 'center', paddingHorizontal: space.md, backgroundColor: '#fff' }, secondaryText: { color: colors.brand, fontWeight: '800', fontSize: 13 }, dim: { opacity: .65 }, field: { gap: 6 }, label: { fontSize: 13, color: colors.muted, fontWeight: '600' }, input: { minHeight: 48, backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: radius.input, paddingHorizontal: 13, color: colors.text, fontSize: 15 }, hint: { color: colors.muted, fontSize: 12 }, chip: { borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 13, paddingVertical: 9, backgroundColor: '#fff' }, chipActive: { backgroundColor: colors.brand, borderColor: colors.brand }, chipDisabled: { backgroundColor: '#F3F5F4' }, chipText: { fontSize: 12, color: colors.text, fontWeight: '600' }, chipTextActive: { color: '#fff' }, chipTextDisabled: { color: '#9AA39F' }, badge: { backgroundColor: colors.successSoft, alignSelf: 'flex-start', paddingHorizontal: 9, paddingVertical: 5, borderRadius: radius.pill }, badgeText: { color: colors.success, fontSize: 11, fontWeight: '800' }, orange: { backgroundColor: colors.warningSoft }, orangeText: { color: '#B66A08' }, red: { backgroundColor: colors.errorSoft }, redText: { color: colors.error }, gray: { backgroundColor: '#F1F3F2' }, grayText: { color: colors.muted }, card: { backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: radius.card, padding: space.md, gap: space.xs, ...shadow }, sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, sectionTitle: { color: colors.text, fontWeight: '800', fontSize: 18 }, errorBanner: { backgroundColor: colors.errorSoft, borderRadius: radius.input, padding: space.sm, gap: 3 }, errorTitle: { color: colors.error, fontWeight: '800', fontSize: 13 }, errorText: { color: '#8C3333', fontSize: 13 }, empty: { paddingVertical: 40, alignItems: 'center', gap: 7 }, emptyMark: { color: colors.brand, fontSize: 32 }, emptyTitle: { fontSize: 16, fontWeight: '800', color: colors.text }, emptyText: { fontSize: 13, color: colors.muted, textAlign: 'center' }, loading: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 }, avatar: { backgroundColor: '#CBEEDD', alignItems: 'center', justifyContent: 'center' }, avatarText: { color: colors.brandStrong, fontWeight: '800' },
+});
