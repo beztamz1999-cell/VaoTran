@@ -5,6 +5,7 @@ import { AutoStartScheduler } from './modules/room/auto-start-scheduler.js';
 import { RoomLifecycleService } from './modules/room/lifecycle-service.js';
 import { RoomRepository } from './modules/room/repository.js';
 import { RoomService } from './modules/room/service.js';
+import { RoomImageService } from './modules/room/image-service.js';
 import { ReliabilityRepository } from './modules/reliability/repository.js';
 import { ReliabilityService } from './modules/reliability/service.js';
 import { RefillExpiryScheduler } from './modules/reliability/refill-expiry-scheduler.js';
@@ -51,6 +52,7 @@ const reliability = new ReliabilityService(db, roomRepository, participationRepo
 const rankingRepository = new RankingRepository();
 const skill = new SkillService(db, roomRepository, rankingRepository);
 const rooms = new RoomService(db, roomRepository, undefined, participationRepository, reliability);
+const images = new RoomImageService(db);
 const participation = new ParticipationService(db, roomRepository, participationRepository, undefined, reliability, partyRepository);
 const lifecycle = new RoomLifecycleService(
   db,
@@ -68,7 +70,7 @@ const readiness = new PostgresReadinessProbe(db);
 const operations = new OperationsService(db);
 const reconciliation = new ReconciliationService(db);
 const reconciliationScheduler = new ReconciliationScheduler(reconciliation);
-const app = createApp({ rooms, identity, participation, lifecycle, search, auth, reliability, skill, party, notifications, operations, analytics, readiness,
+const app = createApp({ rooms, images, identity, participation, lifecycle, search, auth, reliability, skill, party, notifications, operations, analytics, readiness,
   actorResolver: new SessionTokenActorResolver(db, config.allowDevActorHeader) });
 
 const notificationWorkerTimer = setInterval(() => {

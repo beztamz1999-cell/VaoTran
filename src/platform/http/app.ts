@@ -1,4 +1,5 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
+import multer from 'multer';
 import { timingSafeEqual } from 'node:crypto';
 import { z, ZodError } from 'zod';
 import { config, DomainError, logger, newId } from '../core.js';
@@ -9,6 +10,7 @@ import { IdentityService } from '../../modules/identity/service.js';
 import { RoomLifecycleService } from '../../modules/room/lifecycle-service.js';
 import { RoomService, type CommandMeta, type CreateRoomInput, type UpdateRoomInput } from '../../modules/room/service.js';
 import { resolveGoogleMapsLink } from '../../modules/room/google-maps.js';
+import { RoomImageService } from '../../modules/room/image-service.js';
 import { ParticipationService } from '../../modules/participation/service.js';
 import { SearchService } from '../../modules/search/service.js';
 import { ReliabilityService } from '../../modules/reliability/service.js';
@@ -358,8 +360,9 @@ const roomDto = (result: Awaited<ReturnType<RoomService['getRoom']>>) => ({
   version: result.room.version,
 });
 
-export const createApp = (dependencies: { rooms: RoomService; identity: IdentityService; participation: ParticipationService; lifecycle: RoomLifecycleService; search: SearchService; auth?: AuthService; reliability?: ReliabilityService; skill?: SkillService; party?: PartyService; notifications?: NotificationService; operations?: OperationsService; analytics?: AnalyticsService; actorResolver?: ActorResolver; currentUserProvider?: CurrentUserProvider; readiness?: ReadinessProbe }) => {
+export const createApp = (dependencies: { rooms: RoomService; identity: IdentityService; participation: ParticipationService; lifecycle: RoomLifecycleService; search: SearchService; images?: RoomImageService; auth?: AuthService; reliability?: ReliabilityService; skill?: SkillService; party?: PartyService; notifications?: NotificationService; operations?: OperationsService; analytics?: AnalyticsService; actorResolver?: ActorResolver; currentUserProvider?: CurrentUserProvider; readiness?: ReadinessProbe }) => {
   const app = express();
+  const imageUpload = multer({ storage: multer.memoryStorage(), limits: { files: 1, fileSize: 6 * 1024 * 1024 } });
   const actorResolver = dependencies.actorResolver ?? new DevelopmentHeaderActorResolver(config.allowDevActorHeader);
   const currentUserProvider = dependencies.currentUserProvider ?? new ContextCurrentUserProvider();
   app.use((request: Request, response: Response, next: NextFunction) => {
@@ -677,15 +680,16 @@ export const createApp = (dependencies: { rooms: RoomService; identity: Identity
         area: query.area, initialRadiusKm: query.radius_km, timeStart: query.time_start, timeEnd: query.time_end, partyId: query.party_id,
       });
       response.json({
-        data: result.data.map((card) => ({
+        data: await Promise.all(result.data.map(async (card) => ({
           room_id: card.roomId, sport: card.sportCode, title: card.title,
           venue: { name: card.venueName, address: card.venueAddress, distance_km: card.distanceKm },
           schedule: { start_at: card.startAt.toISOString(), end_at: card.endAt.toISOString() },
           capacity: { available_public_slots: card.availablePublicSlots, required_slots: card.requiredSlots },
           price: { amount: card.priceAmount, currency: card.currency },
           skill_fit: card.skillFit, badges: card.badges,
+          cover_image_url: dependencies.images ? (await dependencies.images.cover(card.roomId))?.url ?? null : null,
           host: { user_id: card.host.id, display_name: card.host.displayName },
-        })),
+        }))),
         meta: {
           radius_km: result.meta.radiusKm, radius_expanded: result.meta.radiusExpanded,
           radius_steps_considered: result.meta.radiusStepsConsidered, result_count: result.meta.resultCount,
@@ -711,6 +715,35 @@ export const createApp = (dependencies: { rooms: RoomService; identity: Identity
       const body = googleMapsLinkSchema.parse(request.body);
       response.json({ data: await resolveGoogleMapsLink(body.google_maps_url) });
     } catch (error) { next(error); }
+  });
+
+  app.get('/api/v1/room-images/:storageKey', async (request: RequestContext, response, next) => {
+    try {
+      const storageKey = routeParam(request, 'storageKey');
+      if (!/^[0-9a-f-]{36}\.(jpg|png|webp)$/i.test(storageKey)) throw new DomainError('ROOM_NOT_FOUND', 'Image was not found.');
+      const image = dependencies.images ? await dependencies.images.read(storageKey) : null;
+      if (!image) throw new DomainError('ROOM_NOT_FOUND', 'Image was not found.');
+      response.setHeader('Cache-Control', 'public, max-age=86400');
+      response.type(storageKey.endsWith('.png') ? 'png' : storageKey.endsWith('.webp') ? 'webp' : 'jpeg').send(image);
+    } catch (error) { next(error); }
+  });
+
+  app.get('/api/v1/rooms/:roomId/images', async (request: RequestContext, response, next) => {
+    try { response.json({ data: dependencies.images ? await dependencies.images.list(routeParam(request, 'roomId')) : [] }); } catch (error) { next(error); }
+  });
+  app.post('/api/v1/rooms/:roomId/images', imageUpload.single('image'), async (request: RequestContext, response, next) => {
+    try {
+      if (!dependencies.images) throw new DomainError('VALIDATION_ERROR', 'Image storage is not configured.');
+      if (!request.file) throw new DomainError('VALIDATION_ERROR', 'An image file is required.');
+      const image = await dependencies.images.add(requireActor(request), routeParam(request, 'roomId'), request.file.mimetype, request.file.buffer);
+      response.status(201).json({ data: image });
+    } catch (error) { next(error); }
+  });
+  app.delete('/api/v1/rooms/:roomId/images/:imageId', async (request: RequestContext, response, next) => {
+    try { if (!dependencies.images) throw new DomainError('VALIDATION_ERROR', 'Image storage is not configured.'); await dependencies.images.remove(requireActor(request), routeParam(request, 'roomId'), routeParam(request, 'imageId')); response.status(204).end(); } catch (error) { next(error); }
+  });
+  app.post('/api/v1/rooms/:roomId/images/:imageId/cover', async (request: RequestContext, response, next) => {
+    try { if (!dependencies.images) throw new DomainError('VALIDATION_ERROR', 'Image storage is not configured.'); await dependencies.images.setCover(requireActor(request), routeParam(request, 'roomId'), routeParam(request, 'imageId')); response.status(204).end(); } catch (error) { next(error); }
   });
 
   app.post('/api/v1/rooms', async (request: RequestContext, response, next) => {
@@ -1082,6 +1115,7 @@ export const createApp = (dependencies: { rooms: RoomService; identity: Identity
       const canRequestJoin = Boolean(actorUserId && !isHost && !application && !participant && !scheduleConflict && ['OPEN', 'FULL'].includes(result.room.status));
       response.json({ data: {
         ...roomDto(result),
+        images: dependencies.images ? await dependencies.images.list(result.room.id) : [],
         host: {
           id: host.id, display_name: host.displayName, avatar_url: host.avatarUrl,
           sport_profile: hostSport && {
@@ -1149,6 +1183,7 @@ export const createApp = (dependencies: { rooms: RoomService; identity: Identity
       }));
       response.json({ data: {
         ...roomDto(result),
+        images: dependencies.images ? await dependencies.images.list(result.room.id) : [],
         manager: {
           reserved_external_count: result.room.reservedExternalCount,
           available_public_slots: result.availability.availablePublicSlots,

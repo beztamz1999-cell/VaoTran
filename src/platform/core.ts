@@ -12,6 +12,7 @@ export const newId = (): string => randomUUID();
 export const config = {
   port: Number(process.env.PORT ?? 3000),
   databaseUrl: process.env.DATABASE_URL,
+  roomImageStorageDir: process.env.ROOM_IMAGE_STORAGE_DIR?.trim() || '.room-image-storage',
   logLevel: process.env.LOG_LEVEL ?? 'info',
   idempotencyTtlHours: Number(process.env.IDEMPOTENCY_TTL_HOURS ?? 24),
   autoStartIntervalMs: Number(process.env.AUTO_START_INTERVAL_MS ?? 60_000),

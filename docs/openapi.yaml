@@ -53,6 +53,15 @@ paths:
   /api/v1/rooms/{roomId}:
     get: { operationId: getRoomDetail, description: Room data, public host presentation, and viewer context when authenticated., security: [ {}, { bearerAuth: [] } ], responses: { '200': { $ref: '#/components/responses/Ok' } } }
     patch: { operationId: updateRoom, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+  /api/v1/rooms/{roomId}/images:
+    get: { operationId: listRoomImages, security: [ {}, { bearerAuth: [] } ], responses: { '200': { $ref: '#/components/responses/Ok' } } }
+    post: { operationId: addRoomImage, description: "HOST-only multipart/form-data field: image; JPEG, PNG, or WebP; max 6 MB; max 3 per room.", requestBody: { required: true, content: { multipart/form-data: { schema: { type: object, required: [image], properties: { image: { type: string, format: binary } } } } } }, responses: { '201': { $ref: '#/components/responses/Created' }, '403': { $ref: '#/components/responses/Error' }, '422': { $ref: '#/components/responses/Error' } } }
+  /api/v1/rooms/{roomId}/images/{imageId}:
+    delete: { operationId: removeRoomImage, responses: { '204': { $ref: '#/components/responses/NoContent' }, '403': { $ref: '#/components/responses/Error' }, '404': { $ref: '#/components/responses/Error' } } }
+  /api/v1/rooms/{roomId}/images/{imageId}/cover:
+    post: { operationId: setRoomImageCover, responses: { '204': { $ref: '#/components/responses/NoContent' }, '403': { $ref: '#/components/responses/Error' }, '404': { $ref: '#/components/responses/Error' } } }
+  /api/v1/room-images/{storageKey}:
+    get: { operationId: getRoomImage, security: [], responses: { '200': { description: Room image binary }, '404': { $ref: '#/components/responses/Error' } } }
   /api/v1/rooms/{roomId}/publish:
     post: { operationId: publishRoom, responses: { '200': { $ref: '#/components/responses/Ok' } } }
   /api/v1/rooms/{roomId}/repeat:

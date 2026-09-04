@@ -1,5 +1,6 @@
 node_modules/
 .verification-postgres/
+.room-image-storage/
 mobile/.expo/
 mobile/.expo-export/
 mobile/.expo-export-host-flow/
