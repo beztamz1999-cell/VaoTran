@@ -300,7 +300,7 @@ describe('Host Room Manager projection', () => {
       id: 'room-manager', sportId: 'sport-1', sportCode: 'BADMINTON', hostUserId: actor, title: 'Evening doubles',
       venueName: 'Court A', venueAddress: null, latitude: null, longitude: null,
       scheduledStartAt: new Date('2026-08-22T12:30:00.000Z'), scheduledEndAt: new Date('2026-08-22T14:30:00.000Z'),
-      capacity: 8, hostParticipates: true, reservedExternalCount: 5, priceAmount: null, currency: 'VND',
+      capacity: 8, hostParticipates: true, reservedExternalCount: 5, priceAmount: null, participationFeePerPerson: 0, currency: 'VND',
       preferredSkillMin: null, preferredSkillMax: null, allowEmergencyReplacement: true, status: 'OPEN',
       publicShareToken: null, publishedAt: null, cancelledAt: null, actualStartedAt: null, startSource: null,
       completedAt: null, version: 1, createdAt: clock.now(), updatedAt: clock.now(),

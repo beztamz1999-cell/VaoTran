@@ -36,6 +36,7 @@ export interface Room {
   hostParticipates: boolean;
   reservedExternalCount: number;
   priceAmount: number | null;
+  participationFeePerPerson: number;
   currency: 'VND';
   preferredSkillMin: number | null;
   preferredSkillMax: number | null;
@@ -183,6 +184,7 @@ export const materialRoomFields = new Set([
   'latitude',
   'longitude',
   'priceAmount',
+  'participationFeePerPerson',
   'currency',
   'equipment',
 ]);

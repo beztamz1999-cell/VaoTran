@@ -82,12 +82,12 @@ integration('M8 Share, Notifications & Repeat Room (PostgreSQL)', () => {
 
   afterAll(async () => { await db.close(); });
 
-  const createPublishedRoom = async (input: { startAt?: Date; endAt?: Date; title?: string } = {}) => {
+  const createPublishedRoom = async (input: { startAt?: Date; endAt?: Date; title?: string; participationFeePerPerson?: number } = {}) => {
     const startAt = input.startAt ?? new Date('2026-12-01T12:00:00.000Z');
     const created = await rooms.create(meta(hostId, key('create'), 'CreateRoom', input), {
       sportCode: 'BADMINTON', title: input.title ?? 'M8 Room', venue: { name: 'Sân M8', address: 'Quận 1', latitude: 10.776, longitude: 106.700 },
       scheduledStartAt: startAt, scheduledEndAt: input.endAt ?? new Date(startAt.getTime() + 2 * 60 * 60 * 1000),
-      capacity: 4, hostParticipates: true, reservedExternalCount: 0, priceAmount: 100_000, currency: 'VND',
+      capacity: 4, hostParticipates: true, reservedExternalCount: 0, priceAmount: 100_000, participationFeePerPerson: input.participationFeePerPerson ?? 0, currency: 'VND',
       preferredSkill: null, equipment: { supplyMode: 'PLAYER_BRINGS', allowedOptions: [{ displayName: 'Vợt cá nhân' }] },
       allowEmergencyReplacement: true,
     });
@@ -122,6 +122,7 @@ integration('M8 Share, Notifications & Repeat Room (PostgreSQL)', () => {
     const sourceStart = new Date(clock.now().getTime() + 15 * 60 * 1000);
     const { roomId } = await createPublishedRoom({
       title: 'Completed source', startAt: sourceStart, endAt: new Date(sourceStart.getTime() + 2 * 60 * 60 * 1000),
+      participationFeePerPerson: 50_000,
     });
     await lifecycle.manualStart(roomId, meta(hostId, key('manual-start'), 'ManualStartRoom', {}));
     await lifecycle.complete(roomId, meta(hostId, key('complete'), 'CompleteRoom', {}));
@@ -132,6 +133,7 @@ integration('M8 Share, Notifications & Repeat Room (PostgreSQL)', () => {
     expect(draft.room.status).toBe('DRAFT');
     expect(draft.room.title).toBe('Completed source');
     expect(draft.room.publicShareToken).toBeNull();
+    expect(draft.room.participationFeePerPerson).toBe(50_000);
     expect(draft.availability.availablePublicSlots).toBe(3);
     const copiedParticipants = await db.query(`SELECT 1 FROM room_participants WHERE room_id=$1`, [draft.room.id]);
     expect(copiedParticipants.rowCount).toBe(0);

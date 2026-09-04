@@ -19,6 +19,7 @@ interface RoomRow extends QueryResultRow {
   host_participates: boolean;
   reserved_external_count: number;
   price_amount: number | null;
+  participation_fee_per_person: number;
   currency: 'VND';
   preferred_skill_min: string | null;
   preferred_skill_max: string | null;
@@ -113,6 +114,7 @@ export class RoomRepository {
       hostParticipates: row.host_participates,
       reservedExternalCount: row.reserved_external_count,
       priceAmount: row.price_amount,
+      participationFeePerPerson: row.participation_fee_per_person,
       currency: row.currency,
       preferredSkillMin: num(row.preferred_skill_min),
       preferredSkillMax: num(row.preferred_skill_max),
@@ -162,15 +164,15 @@ export class RoomRepository {
       `INSERT INTO rooms (
         id, sport_id, host_user_id, title, venue_name, venue_address, latitude, longitude,
         scheduled_start_at, scheduled_end_at, capacity, host_participates, reserved_external_count,
-        price_amount, currency, preferred_skill_min, preferred_skill_max, allow_emergency_replacement,
+        price_amount, participation_fee_per_person, currency, preferred_skill_min, preferred_skill_max, allow_emergency_replacement,
         status, public_share_token, published_at, cancelled_at, actual_started_at, start_source, completed_at, version, created_at, updated_at
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29
       )`,
       [
         room.id, room.sportId, room.hostUserId, room.title, room.venueName, room.venueAddress,
         room.latitude, room.longitude, room.scheduledStartAt, room.scheduledEndAt, room.capacity,
-        room.hostParticipates, room.reservedExternalCount, room.priceAmount, room.currency,
+        room.hostParticipates, room.reservedExternalCount, room.priceAmount, room.participationFeePerPerson, room.currency,
         room.preferredSkillMin, room.preferredSkillMax, room.allowEmergencyReplacement, room.status,
         room.publicShareToken, room.publishedAt, room.cancelledAt, room.actualStartedAt, room.startSource, room.completedAt,
         room.version, room.createdAt, room.updatedAt,
@@ -184,14 +186,14 @@ export class RoomRepository {
       `UPDATE rooms SET
         title=$2, venue_name=$3, venue_address=$4, latitude=$5, longitude=$6,
         scheduled_start_at=$7, scheduled_end_at=$8, capacity=$9, host_participates=$10,
-        reserved_external_count=$11, price_amount=$12, currency=$13, preferred_skill_min=$14,
-        preferred_skill_max=$15, allow_emergency_replacement=$16, status=$17, public_share_token=$18, published_at=$19,
-        cancelled_at=$20, actual_started_at=$21, start_source=$22, completed_at=$23, version=$24, updated_at=$25
+        reserved_external_count=$11, price_amount=$12, participation_fee_per_person=$13, currency=$14, preferred_skill_min=$15,
+        preferred_skill_max=$16, allow_emergency_replacement=$17, status=$18, public_share_token=$19, published_at=$20,
+        cancelled_at=$21, actual_started_at=$22, start_source=$23, completed_at=$24, version=$25, updated_at=$26
        WHERE id=$1`,
       [
         room.id, room.title, room.venueName, room.venueAddress, room.latitude, room.longitude,
         room.scheduledStartAt, room.scheduledEndAt, room.capacity, room.hostParticipates,
-        room.reservedExternalCount, room.priceAmount, room.currency, room.preferredSkillMin,
+        room.reservedExternalCount, room.priceAmount, room.participationFeePerPerson, room.currency, room.preferredSkillMin,
         room.preferredSkillMax, room.allowEmergencyReplacement, room.status, room.publicShareToken, room.publishedAt,
         room.cancelledAt, room.actualStartedAt, room.startSource, room.completedAt, room.version, room.updatedAt,
       ],
@@ -260,7 +262,7 @@ export class RoomRepository {
   makeChangeLogs(roomId: string, actorId: string, previous: Room, next: Room, clock: Clock): RoomChangeLog[] {
     const fields: Array<keyof Room> = [
       'title', 'venueName', 'venueAddress', 'latitude', 'longitude', 'scheduledStartAt', 'scheduledEndAt',
-      'capacity', 'hostParticipates', 'reservedExternalCount', 'priceAmount', 'currency', 'preferredSkillMin',
+      'capacity', 'hostParticipates', 'reservedExternalCount', 'priceAmount', 'participationFeePerPerson', 'currency', 'preferredSkillMin',
       'preferredSkillMax', 'allowEmergencyReplacement', 'equipment',
     ];
     return fields.flatMap((fieldName) => {
@@ -268,7 +270,7 @@ export class RoomRepository {
       const newValue = next[fieldName];
       const same = JSON.stringify(oldValue) === JSON.stringify(newValue);
       if (same) return [];
-      const material = ['scheduledStartAt', 'scheduledEndAt', 'venueName', 'venueAddress', 'latitude', 'longitude', 'priceAmount', 'currency', 'equipment'].includes(fieldName);
+      const material = ['scheduledStartAt', 'scheduledEndAt', 'venueName', 'venueAddress', 'latitude', 'longitude', 'priceAmount', 'participationFeePerPerson', 'currency', 'equipment'].includes(fieldName);
       return [{
         id: newId(), roomId, changedByUserId: actorId, fieldName, oldValue, newValue,
         isMaterialChange: material, createdAt: clock.now(),

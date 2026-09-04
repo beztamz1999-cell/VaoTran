@@ -28,6 +28,7 @@ const iconNames = {
   home: { ios: 'house.fill', android: 'home', web: 'home' }, calendar: { ios: 'calendar', android: 'calendar_month', web: 'calendar_month' },
   create: { ios: 'plus.circle.fill', android: 'add_circle', web: 'add_circle' }, bell: { ios: 'bell', android: 'notifications', web: 'notifications' },
   profile: { ios: 'person', android: 'person', web: 'person' }, back: { ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }, location: { ios: 'location', android: 'location_on', web: 'location_on' },
+  check: { ios: 'checkmark', android: 'check', web: 'check' },
 } as const;
 export function AppIcon({ name, size = 20, color = colors.muted }: { name: keyof typeof iconNames; size?: number; color?: string }) { return <SymbolView name={iconNames[name]} size={size} tintColor={color} />; }
 

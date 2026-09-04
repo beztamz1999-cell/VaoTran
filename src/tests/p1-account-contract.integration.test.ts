@@ -85,4 +85,26 @@ integration('P1 account and room-detail projections (PostgreSQL)', () => {
     expect(context.application).toMatchObject({ status: 'ACCEPTED' });
     expect(context.participant).toMatchObject({ status: 'ACTIVE', attendanceStatus: 'NOT_SET' });
   });
+
+  it('stores an explicit per-person fee, permits only the HOST to edit it, and defaults free rooms to zero', async () => {
+    const created = await rooms.create(meta(hostId, key('fee-create'), 'CreateRoom'), {
+      sportCode: 'BADMINTON', title: 'Fee room', venue: { name: 'P1 venue' },
+      scheduledStartAt: new Date('2026-12-01T12:00:00.000Z'), scheduledEndAt: new Date('2026-12-01T14:00:00.000Z'),
+      capacity: 2, hostParticipates: true, reservedExternalCount: 0, priceAmount: null, participationFeePerPerson: 50_000, currency: 'VND',
+      preferredSkill: null, equipment: { supplyMode: 'PLAYER_BRINGS' }, allowEmergencyReplacement: true,
+    });
+    expect((await rooms.getRoom(created.body.roomId)).room.participationFeePerPerson).toBe(50_000);
+    await rooms.update(created.body.roomId, meta(hostId, key('fee-update'), 'UpdateRoom'), { participationFeePerPerson: 75_000 });
+    expect((await rooms.getRoom(created.body.roomId)).room.participationFeePerPerson).toBe(75_000);
+    await expect(rooms.update(created.body.roomId, meta(otherHostId, key('fee-other-host'), 'UpdateRoom'), { participationFeePerPerson: 1 })).rejects.toMatchObject({ code: 'NOT_ROOM_HOST' });
+    await expect(rooms.create(meta(hostId, key('fee-negative'), 'CreateRoom'), {
+      sportCode: 'BADMINTON', venue: { name: 'Invalid fee' }, scheduledStartAt: new Date('2026-12-02T12:00:00.000Z'), scheduledEndAt: new Date('2026-12-02T14:00:00.000Z'),
+      capacity: 2, hostParticipates: true, reservedExternalCount: 0, priceAmount: null, participationFeePerPerson: -1, currency: 'VND', preferredSkill: null, equipment: { supplyMode: 'PLAYER_BRINGS' }, allowEmergencyReplacement: true,
+    })).rejects.toMatchObject({ code: 'VALIDATION_ERROR' });
+    const free = await rooms.create(meta(hostId, key('fee-free'), 'CreateRoom'), {
+      sportCode: 'BADMINTON', venue: { name: 'Free fee' }, scheduledStartAt: new Date('2026-12-03T12:00:00.000Z'), scheduledEndAt: new Date('2026-12-03T14:00:00.000Z'),
+      capacity: 2, hostParticipates: true, reservedExternalCount: 0, priceAmount: null, currency: 'VND', preferredSkill: null, equipment: { supplyMode: 'PLAYER_BRINGS' }, allowEmergencyReplacement: true,
+    });
+    expect((await rooms.getRoom(free.body.roomId)).room.participationFeePerPerson).toBe(0);
+  });
 });

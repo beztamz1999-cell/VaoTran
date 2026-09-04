@@ -10,6 +10,15 @@ security:
 components:
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer, bearerFormat: opaque-session-token }
+  schemas:
+    ParticipationFeePerPerson:
+      type: integer
+      minimum: 0
+      maximum: 10000000
+      default: 0
+      description: >-
+        Declared VND amount per participant. Zero means free. This is informational only:
+        VàoTrận does not collect, escrow, transfer, or reconcile money.
   responses:
     Ok: { description: Successful response }
     Created: { description: Resource created }
@@ -45,14 +54,14 @@ paths:
   /api/v1/notifications/{notificationId}/read:
     post: { operationId: markNotificationRead, responses: { '200': { $ref: '#/components/responses/Ok' } } }
   /api/v1/search/rooms:
-    get: { operationId: searchRooms, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+    get: { operationId: searchRooms, description: Each room card includes participation_fee_per_person (ParticipationFeePerPerson)., responses: { '200': { $ref: '#/components/responses/Ok' } } }
   /api/v1/search/telemetry:
     post: { operationId: recordSearchTelemetry, responses: { '204': { $ref: '#/components/responses/NoContent' } } }
   /api/v1/rooms:
-    post: { operationId: createRoom, responses: { '201': { $ref: '#/components/responses/Created' } } }
+    post: { operationId: createRoom, description: 'Request may include participation_fee_per_person (ParticipationFeePerPerson); omitted defaults to 0 (free). Informational only; no payment is processed.', responses: { '201': { $ref: '#/components/responses/Created' } } }
   /api/v1/rooms/{roomId}:
-    get: { operationId: getRoomDetail, description: Room data, public host presentation, and viewer context when authenticated., security: [ {}, { bearerAuth: [] } ], responses: { '200': { $ref: '#/components/responses/Ok' } } }
-    patch: { operationId: updateRoom, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+    get: { operationId: getRoomDetail, description: Room data (including participation_fee_per_person), public host presentation, and viewer context when authenticated., security: [ {}, { bearerAuth: [] } ], responses: { '200': { $ref: '#/components/responses/Ok' } } }
+    patch: { operationId: updateRoom, description: 'HOST-only. May update participation_fee_per_person (ParticipationFeePerPerson); this never initiates payment.', responses: { '200': { $ref: '#/components/responses/Ok' } } }
   /api/v1/rooms/{roomId}/images:
     get: { operationId: listRoomImages, security: [ {}, { bearerAuth: [] } ], responses: { '200': { $ref: '#/components/responses/Ok' } } }
     post: { operationId: addRoomImage, description: "HOST-only multipart/form-data field: image; JPEG, PNG, or WebP; max 6 MB; max 3 per room.", requestBody: { required: true, content: { multipart/form-data: { schema: { type: object, required: [image], properties: { image: { type: string, format: binary } } } } } }, responses: { '201': { $ref: '#/components/responses/Created' }, '403': { $ref: '#/components/responses/Error' }, '422': { $ref: '#/components/responses/Error' } } }
@@ -65,9 +74,9 @@ paths:
   /api/v1/rooms/{roomId}/publish:
     post: { operationId: publishRoom, responses: { '200': { $ref: '#/components/responses/Ok' } } }
   /api/v1/rooms/{roomId}/repeat:
-    post: { operationId: repeatRoom, responses: { '201': { $ref: '#/components/responses/Created' } } }
+    post: { operationId: repeatRoom, description: Repeated draft copies the source Room declaration including participation_fee_per_person., responses: { '201': { $ref: '#/components/responses/Created' } } }
   /r/{shareToken}:
-    get: { operationId: resolveRoomShareLink, security: [], responses: { '302': { description: Redirect to the Room client view }, '404': { $ref: '#/components/responses/Error' } } }
+    get: { operationId: resolveRoomShareLink, description: Shared Room representation includes participation_fee_per_person when returned as JSON., security: [], responses: { '302': { description: Redirect to the Room client view }, '404': { $ref: '#/components/responses/Error' } } }
   /api/v1/rooms/{roomId}/reserved-external-count:
     post: { operationId: updateReservedExternalCount, responses: { '200': { $ref: '#/components/responses/Ok' } } }
   /api/v1/rooms/{roomId}/cancel:
@@ -85,7 +94,7 @@ paths:
   /api/v1/applications/{applicationId}/reject:
     post: { operationId: rejectApplication, responses: { '200': { $ref: '#/components/responses/Ok' } } }
   /api/v1/host/rooms/{roomId}:
-    get: { operationId: getHostRoomManager, responses: { '200': { $ref: '#/components/responses/Ok' } } }
+    get: { operationId: getHostRoomManager, description: HOST manager Room representation includes participation_fee_per_person., responses: { '200': { $ref: '#/components/responses/Ok' } } }
   /api/v1/host/rooms/{roomId}/applications:
     get: { operationId: listHostApplications, responses: { '200': { $ref: '#/components/responses/Ok' } } }
   /api/v1/host/rooms/{roomId}/waitlist:

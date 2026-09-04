@@ -13,6 +13,7 @@
     "start": "node dist/server.js",
     "test": "vitest run --no-file-parallelism",
     "test:watch": "vitest",
+    "verify:room-images": "tsx scripts/verify-room-images.ts",
     "migrate:up": "tsx src/platform/database/migrate.ts up",
     "migrate:down": "tsx src/platform/database/migrate.ts down",
     "migrate:status": "tsx src/platform/database/migrate.ts status",

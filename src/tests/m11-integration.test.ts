@@ -101,6 +101,7 @@ integration('M11 Analytics Operational Hardening (PostgreSQL)', () => {
   });
 
   it('records projection failure evidence and increments health counters without mutating canonical data', async () => {
+    const roomsBefore = await db.query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM rooms`);
     const invalid = event('ROOM_CREATED', {
       room_id: newId(), sport_code: 'BADMINTON', area_bucket: 'AREA_A', capacity: 0,
     });
@@ -113,7 +114,8 @@ integration('M11 Analytics Operational Hardening (PostgreSQL)', () => {
       `SELECT event_type, event_version, failure_code FROM analytics_projection_failures WHERE event_id = $1`, [invalid.id],
     );
     expect(failures.rows[0]).toEqual({ event_type: 'ROOM_CREATED', event_version: 1, failure_code: 'PROJECTION_FAILED' });
-    expect((await db.query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM rooms`)).rows[0]?.count).toBe('0');
+    expect((await db.query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM rooms`)).rows[0]?.count)
+      .toBe(roomsBefore.rows[0]?.count);
   });
 
   it('validates outbox provenance and pseudonymous projection integrity after replay', async () => {

@@ -16,6 +16,7 @@ interface CandidateRow extends QueryResultRow {
   scheduled_start_at: Date;
   scheduled_end_at: Date;
   price_amount: number | null;
+  participation_fee_per_person: number;
   currency: 'VND';
   preferred_skill_min: string | null;
   preferred_skill_max: string | null;
@@ -70,6 +71,7 @@ const mapCandidate = (row: CandidateRow): SearchCandidate => ({
   scheduledStartAt: row.scheduled_start_at,
   scheduledEndAt: row.scheduled_end_at,
   priceAmount: row.price_amount,
+  participationFeePerPerson: row.participation_fee_per_person,
   currency: row.currency,
   preferredSkillMin: numeric(row.preferred_skill_min),
   preferredSkillMax: numeric(row.preferred_skill_max),
@@ -141,6 +143,7 @@ export class SearchRepository {
         r.scheduled_start_at,
         r.scheduled_end_at,
         r.price_amount,
+        r.participation_fee_per_person,
         r.currency,
         r.preferred_skill_min,
         r.preferred_skill_max,

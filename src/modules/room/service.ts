@@ -45,6 +45,7 @@ export interface CreateRoomInput {
   hostParticipates: boolean;
   reservedExternalCount: number;
   priceAmount?: number | null;
+  participationFeePerPerson?: number;
   currency?: 'VND';
   preferredSkill?: { minScore?: number | null; maxScore?: number | null } | null;
   equipment: EquipmentInput;
@@ -61,6 +62,7 @@ export interface UpdateRoomInput {
   hostParticipates?: boolean;
   reservedExternalCount?: number;
   priceAmount?: number | null;
+  participationFeePerPerson?: number;
   currency?: 'VND';
   preferredSkill?: { minScore?: number | null; maxScore?: number | null } | null;
   equipment?: EquipmentInput;
@@ -120,6 +122,12 @@ const validateSkill = (min: number | null, max: number | null): void => {
   }
 };
 
+const validateParticipationFee = (fee: number): void => {
+  if (!Number.isInteger(fee) || fee < 0 || fee > 10_000_000) {
+    throw new DomainError('VALIDATION_ERROR', 'Participation fee per person must be an integer from 0 to 10,000,000 VND.');
+  }
+};
+
 export class RoomService {
   private readonly idempotency: PostgresIdempotencyGate;
 
@@ -136,6 +144,7 @@ export class RoomService {
   async create(meta: CommandMeta, input: CreateRoomInput): Promise<IdempotencyResult<RoomSummary>> {
     return this.idempotency.execute(meta.idempotency, 201, async (tx) => {
       validateRoomTimeWindow(input.scheduledStartAt, input.scheduledEndAt);
+      validateParticipationFee(input.participationFeePerPerson ?? 0);
       const sportId = await this.rooms.findSportIdByCode(tx, input.sportCode);
       if (!sportId) throw new DomainError('SPORT_NOT_FOUND', 'Active sport was not found.');
       const preferredMin = input.preferredSkill?.minScore ?? null;
@@ -148,7 +157,7 @@ export class RoomService {
         latitude: input.venue.latitude ?? null, longitude: input.venue.longitude ?? null,
         scheduledStartAt: input.scheduledStartAt, scheduledEndAt: input.scheduledEndAt,
         capacity: input.capacity, hostParticipates: input.hostParticipates,
-        reservedExternalCount: input.reservedExternalCount, priceAmount: input.priceAmount ?? null,
+        reservedExternalCount: input.reservedExternalCount, priceAmount: input.priceAmount ?? null, participationFeePerPerson: input.participationFeePerPerson ?? 0,
         currency: input.currency ?? 'VND', preferredSkillMin: preferredMin, preferredSkillMax: preferredMax,
         allowEmergencyReplacement: input.allowEmergencyReplacement, status: 'DRAFT', publicShareToken: null, publishedAt: null,
         cancelledAt: null, actualStartedAt: null, startSource: null, completedAt: null,
@@ -215,6 +224,7 @@ export class RoomService {
       const next = this.applyUpdate(previous, input);
       validateRoomTimeWindow(next.scheduledStartAt, next.scheduledEndAt);
       validateSkill(next.preferredSkillMin, next.preferredSkillMax);
+      validateParticipationFee(next.participationFeePerPerson);
       const activeAcceptedAppParticipants = await this.countActiveParticipants(tx, previous.id);
       const availability = validateCapacityInvariant(next, activeAcceptedAppParticipants);
       if (next.status === 'OPEN' || next.status === 'FULL') next.status = availability.availablePublicSlots > 0 ? 'OPEN' : 'FULL';
@@ -295,7 +305,7 @@ export class RoomService {
         title: source.title, venueName: source.venueName, venueAddress: source.venueAddress,
         latitude: source.latitude, longitude: source.longitude, scheduledStartAt: input.scheduledStartAt,
         scheduledEndAt: input.scheduledEndAt, capacity: source.capacity, hostParticipates: source.hostParticipates,
-        reservedExternalCount: source.reservedExternalCount, priceAmount: source.priceAmount, currency: source.currency,
+        reservedExternalCount: source.reservedExternalCount, priceAmount: source.priceAmount, participationFeePerPerson: source.participationFeePerPerson, currency: source.currency,
         preferredSkillMin: source.preferredSkillMin, preferredSkillMax: source.preferredSkillMax,
         allowEmergencyReplacement: source.allowEmergencyReplacement, status: 'DRAFT', publicShareToken: null,
         publishedAt: null, cancelledAt: null, actualStartedAt: null, startSource: null, completedAt: null,
@@ -387,6 +397,7 @@ export class RoomService {
       hostParticipates: input.hostParticipates ?? previous.hostParticipates,
       reservedExternalCount: input.reservedExternalCount ?? previous.reservedExternalCount,
       priceAmount: input.priceAmount === undefined ? previous.priceAmount : input.priceAmount,
+      participationFeePerPerson: input.participationFeePerPerson === undefined ? previous.participationFeePerPerson : input.participationFeePerPerson,
       currency: input.currency ?? previous.currency,
       preferredSkillMin: skill.min,
       preferredSkillMax: skill.max,

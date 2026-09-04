@@ -39,6 +39,7 @@ export interface SearchCandidate {
   scheduledStartAt: Date;
   scheduledEndAt: Date;
   priceAmount: number | null;
+  participationFeePerPerson: number;
   currency: 'VND';
   preferredSkillMin: number | null;
   preferredSkillMax: number | null;
@@ -68,7 +69,10 @@ export interface SearchResultCard {
   startAt: Date;
   endAt: Date;
   priceAmount: number | null;
+  participationFeePerPerson: number;
   currency: 'VND';
+  preferredSkillMin: number | null;
+  preferredSkillMax: number | null;
 }
 
 export interface ScoredSearchCandidate {
@@ -181,5 +185,8 @@ export const cardFrom = (scored: ScoredSearchCandidate, requiredSlots = 1): Sear
   startAt: scored.candidate.scheduledStartAt,
   endAt: scored.candidate.scheduledEndAt,
   priceAmount: scored.candidate.priceAmount,
+  participationFeePerPerson: scored.candidate.participationFeePerPerson,
   currency: scored.candidate.currency,
+  preferredSkillMin: scored.candidate.preferredSkillMin,
+  preferredSkillMax: scored.candidate.preferredSkillMax,
 });
